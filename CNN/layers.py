@@ -4,14 +4,25 @@ import PIL
 import math
 
 class Conv2D:
+    """
+    args:
+        filters: Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution)
+        kenel_size: An integer or tuple of 2 integers, specifying the height and width of the 2D convolution window. Can be a single integer to specify the same value for all spatial dimensions.
+        pooling_filter_size: An integer or tuple of 2 integers, specifying the height and width of the pooling window. Can be a single integer to specify the same value for all spatial dimensions.
+        strides: An integer or tuple of 2 integers, specifying the strides of the convolution along the height and width. Can be a single integer to specify the same value for all spatial dimensions.
+        padding: An integer or tuple of 2 integers, specifying additional padding of the input data along the height and width. Can be a single integer to specify the same value for all spatial dimensions.
+        input_shape: Tuple of 3 integers consist of (height, width, channels) of the input data
+        pooling_strides: An integer or tuple of 2 integers, specifying the strides of the pooling stage along the height and width. Can be a single integer to specify the same value for all spatial dimensions.
+        pooling_mode: A string, specifying the mode of the pooling stage. There are two modes for the pooling stage 'average' and 'max'
+    """
     def __init__(self,
                 filters: int, 
-                kernel_size: tuple[int]|int,
-                pooling_filter_size: tuple[int]|int, 
-                strides: tuple[int]|int = 1, 
-                padding: tuple[int]|int = 0,
-                input_shape: tuple[int] = None,
-                pooling_strides: tuple[int]|int = 1,
+                kernel_size: tuple[int, int]|int,
+                pooling_filter_size: tuple[int, int]|int, 
+                strides: tuple[int, int]|int = 1, 
+                padding: tuple[int, int]|int = 0,
+                input_shape: tuple[int, int, int] = None,
+                pooling_strides: tuple[int, int]|int = 2,
                 pooling_mode: str = 'average'):
 
         filters, kernel_size, strides, padding = self._check_params(filters, kernel_size, strides, padding)
@@ -168,6 +179,7 @@ class Conv2D:
             out_batch.append(out)
         return np.array(out_batch)
 
+    # Method for forward phase, just call the model. Ex: model = Conv2D(...); model(input_data)
     def __call__(self, batch_image):
         out = self._convolution_stage(batch_image)
         out = self._detector_stage(out)
