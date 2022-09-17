@@ -113,6 +113,9 @@ class Conv2D:
         if (not(isinstance(input_matrix, np.ndarray))):
             input_matrix = np.array(input_matrix)
         assert len(input_matrix.shape) == 4, 'Input shape should have 4 dimensions (batch, height, width, depth)'
+        batch, height, width, depth = input_matrix.shape
+        if (height != self.height or width != self.width or depth != self.depth):
+            raise ValueError(f"Expected input shape is (_, {self.height}, {self.width}, {self.depth}) not {input_matrix.shape}")
         return input_matrix
 
     def _convolution_operation(self, input_data_matrix, kernel):
@@ -122,7 +125,7 @@ class Conv2D:
         for i in range(h):
             for j in range(w):
                 output_matrix[i, j] = (input_data_matrix[i * self.strides[0] : i * self.strides[0] + self.kernel_size[0], j * self.strides[1] : j * self.strides[1] + self.kernel_size[1]] * kernel).sum()
-        return output_matrix/(kernel.sum() if kernel.sum() != 0 else 1)
+        return output_matrix
 
     def _pooling_operation(self, input_data_matrix):
         output_matrix = np.zeros((self.output_shape_pooling[0], self.output_shape_pooling[1]))
@@ -147,6 +150,7 @@ class Conv2D:
             for d in range(self.depth):
                 cur_kernel = self.kernels[d]
                 out += np.dstack([self._convolution_operation(cur_data[:, :, d], cur_kernel[:, :, k]) for k in range(self.filters)])
+            out = out / self.depth
             out += self.biases
             out_batch.append(out)
         return np.array(out_batch)
