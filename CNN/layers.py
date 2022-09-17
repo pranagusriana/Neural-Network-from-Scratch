@@ -98,6 +98,7 @@ class Conv2D:
         assert isinstance(input_shape, tuple), 'Input shape should be tuple of integers with 3 dimensions (height, width, depth)'
         assert len(input_shape) == 3, 'Input shape should have 3 dimensions (height, width, depth)'
         self.height, self.width, self.depth = input_shape
+        self.nWeights = self.filters * ((self.kernel_size[0] * self.kernel_size[1] * self.depth) + 1)
         if (((self.height - self.kernel_size[0]) <= 0) and ((self.width - self.kernel_size[1]) <= 0)):
             raise ValueError('Kernel size should be less or equal than input shape')
 
@@ -185,3 +186,9 @@ class Conv2D:
         out = self._detector_stage(out)
         out = self._pooling_stage(out)
         return out
+
+    def getOutputShape(self):
+        return self.output_shape_pooling # Because of the Conv2D included pooling, so the output shape is output shape pooling
+
+    def getNumberofWeights(self):
+        return self.nWeights
