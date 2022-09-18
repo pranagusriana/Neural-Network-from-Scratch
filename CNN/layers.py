@@ -109,7 +109,7 @@ class Conv2D:
 
     def _init_kernels(self):
         self.kernels = np.random.randn(self.depth, self.kernel_size[0], self.kernel_size[1], self.filters)
-        self.biases = np.random.randn(self.filters)
+        self.biases = np.zeros(self.filters)
 
     def _calculate_output_shape(self):
         H = int((self.height - self.kernel_size[0] + 2 * self.padding[0]) / self.strides[0]) + 1
@@ -192,3 +192,120 @@ class Conv2D:
 
     def getNumberofWeights(self):
         return self.nWeights
+
+class Flatten:
+    def __init__(self,
+                input_shape: int = None):
+        if (input_shape):
+            self.add_input_shape(input_shape)
+
+    def _check_input_shape(self, input_shape):
+        assert isinstance(input_shape, tuple), 'Input shape should be tuple of integers with 3 dimensions (height, width, depth)'
+        assert len(input_shape) == 3, 'Input shape should have 3 dimensions (height, width, depth)'
+        self.height, self.width, self.depth = input_shape
+        self.nWeights = 0
+
+    def _calculate_output_shape(self):
+        self.output_shape =  (self.height * self.width * self.depth,)
+
+    def add_input_shape(self, input_shape):
+        self._check_input_shape(input_shape)
+        self._calculate_output_shape()
+    
+    def _check_input_data(self, input_data):
+        if (not(isinstance(input_data, np.ndarray))):
+            input_data = np.array(input_data)
+        assert len(input_data.shape) == 4, 'Input shape should have 4 dimensions (batch, height, width, depth)'
+        batch, height, width, depth = input_data.shape
+        if (height != self.height or width != self.width or depth != self.depth):
+            raise ValueError(f"Expected input shape is (_, {self.height}, {self.width}, {self.depth}) not {input_data.shape}")
+        return input_data
+
+    def getOutputShape(self):
+        return self.output_shape
+
+    def getNumberofWeights(self):
+        return self.nWeights
+
+    def __call__(self, batch_data):
+        input_data = self._check_input_data(batch_data)
+        batch, height, width, depth = input_data.shape
+        return np.array([input_data[i].flatten() for i in range(batch)])
+
+class Dense:
+    def __init__(self,
+                units: int,
+                activation: str = None,
+                input_shape: tuple[int] = None):
+        self.units, self.activation = self._check_params(units, activation)
+        if (input_shape):
+            self.add_input_shape(input_shape)
+
+    def _check_params(self, units, activation):
+        if (not(isinstance(units, int))):
+            raise TypeError("Units should be integers >= 1")
+        if (units < 1):
+            raise ValueError("Units should be integers >= 1")
+        if (activation):
+            if (not(isinstance(activation, str))):
+                raise TypeError("Activation should be string specifying the activation function. There are two activation function 'relu' and 'sigmoid'")
+            else:
+                if (activation.lower() not in ['relu', 'sigmoid']):
+                    raise ValueError("Activation should be string specifying the activation function. There are two activation function 'relu' and 'sigmoid'")
+        else:
+            activation = 'linear'
+        return units, activation.lower()
+        
+    def _check_input_shape(self, input_shape):
+        assert isinstance(input_shape, tuple), 'Input shape should be tuple of integers with 1 dimensions (number_of_inputs, )'
+        assert len(input_shape) == 1, 'Input shape should have 1 dimensions (number_of_inputs, )'
+        self.nInputs, = input_shape
+        self.nWeights = self.units * self.nInputs + self.units # n_neuron * n_input + n_bias
+
+    def _init_weights(self):
+        self.weights = np.random.randn(self.units, self.nInputs)
+        self.biases = np.zeros(self.units)
+
+    def _calculate_output_shape(self):
+        self.output_shape =  (self.units, )
+
+    def add_input_shape(self, input_shape):
+        self._check_input_shape(input_shape)
+        self._init_weights()
+        self._calculate_output_shape()
+
+    def _check_input_data(self, input_data):
+        if (not(isinstance(input_data, np.ndarray))):
+            input_data = np.array(input_data)
+        assert len(input_data.shape) == 2, 'Input shape should have 2 dimensions (batch, n_inputs)'
+        batch, n_inputs = input_data.shape
+        if (n_inputs != self.nInputs):
+            raise ValueError(f"Expected input shape is (_, {self.nInputs}) not {input_data.shape}")
+        return input_data
+
+    def getOutputShape(self):
+        return self.output_shape
+
+    def getNumberofWeights(self):
+        return self.nWeights
+
+    def __call__(self, batch_data):
+        input_data = self._check_input_data(batch_data)
+        batch, n_inputs = input_data.shape
+        return np.array([self.f(np.dot(input_data[i], self.weights.T) + self.biases) for i in range(batch)])
+
+    def f(self, net):
+        if (self.activation == 'relu'):
+            return self.relu(net)
+        elif (self.activation == 'sigmoid'):
+            return self.sigmoid(net)
+        else:
+            # linear activation function
+            return net
+
+    def relu(self, net):
+        net[net < 0] = 0
+        return net
+
+    def sigmoid(self, net):
+        return 1 / (1 + np.exp(-net))
