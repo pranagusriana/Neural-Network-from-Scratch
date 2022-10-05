@@ -1,3 +1,4 @@
+import pickle
 class Sequential:
     """
     args:
@@ -29,3 +30,12 @@ class Sequential:
         for layer in self.layers:
             out = layer(out)
         return out
+    
+    def save(self, filename):
+        pickle_out = open(filename, "wb")
+        pickle.dump(self.layers,pickle_out)
+        pickle_out.close()
+    
+    def load(self, filename):
+        pickle_in = open(filename, "rb")
+        self.layers = pickle.load(pickle_in)
