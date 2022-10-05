@@ -18,6 +18,7 @@ model = Sequential(
 )
 out = model(np.array([cat_img, dog_img])/255)
 print("UNPICKLED FILE\n")
+print(out)
 print(model.layers)
 print(model.layers[0].filters)
 # TEST SAVE & LOAD
