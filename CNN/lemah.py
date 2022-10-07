@@ -45,8 +45,8 @@ class Sequential:
             error = 0
             for x, y in zip(X, Y):
                 output = self.__call__(x)
-                error += self.loss(y, output.T)
-                grad = self.loss(y, output.T, prime=True)
+                error += self.loss(y, output)
+                grad = self.loss(y, output, prime=True)
                 for layer in reversed(self.layers):
                     grad = layer.backward(self.optimizer, grad)
             print(f"{e + 1}/{epochs}, error={error}")

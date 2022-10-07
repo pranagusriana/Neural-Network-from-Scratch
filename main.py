@@ -2,8 +2,10 @@ import numpy as np
 from PIL import Image
 from CNN.layers import Conv2D, Flatten, Dense
 from CNN.lemah import Sequential
+from CNN.loses import mse
+from CNN.optimizer import SGD
 
-img_size = 150
+img_size = 50
 cat_img = np.array(Image.open("./Data/test/cats/cat.38.jpg").resize((img_size, img_size)), dtype=int)
 dog_img = np.array(Image.open("./Data/test/dogs/dog.4.jpg").resize((img_size, img_size)), dtype=int)
 model = Sequential(
@@ -16,17 +18,14 @@ model = Sequential(
         Dense(1, activation='sigmoid')
     ]
 )
-out = model(np.array([cat_img, dog_img])/255)
-print("UNPICKLED FILE\n")
+optim = SGD(learning_rate=2, momentum=0.1)
+loss = mse
+model.compile(optim, loss)
+
+X = np.array([cat_img, dog_img])/255
+y = np.expand_dims(np.array([1, 0]), axis=1)
+
+model.fit(np.expand_dims(X, axis=0), np.expand_dims(y, axis=0), epochs=5)
+out = model(X)
+print("Loss:", loss(y, out))
 print(out)
-print(model.layers)
-print(model.layers[0].filters)
-# TEST SAVE & LOAD
-#model.save('test.pickle')
-test_model = Sequential()
-test_model.load('test.pickle')
-out_test = test_model(np.array([cat_img, dog_img])/255)
-print("PICKLED FILE\n")
-print(out_test)
-print(test_model.layers)
-print(test_model.layers[0].filters)
