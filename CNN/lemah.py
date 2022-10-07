@@ -1,5 +1,4 @@
 import pickle
-from re import L
 import numpy as np
 
 class Sequential:
@@ -44,9 +43,9 @@ class Sequential:
         for e in range(epochs):
             error = 0
             for x, y in zip(X, Y):
-                output = self.__call__(x)
-                error += self.loss(y, output)
-                grad = self.loss(y, output, prime=True)
+                output = self.__call__(np.array(x))
+                error += self.loss(np.array(y), output)
+                grad = self.loss(np.array(y), output, prime=True)
                 for layer in reversed(self.layers):
                     grad = layer.backward(self.optimizer, grad)
             print(f"{e + 1}/{epochs}, error={error}")

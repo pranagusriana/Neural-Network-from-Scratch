@@ -7,7 +7,7 @@ class SGD:
         self.velocity = 0
 
     def update(self, weight, gradient):
-        print(weight.shape, gradient.shape)
-        self.velocity = self.momentum * self.velocity - self.learning_rate * gradient
-        updated_weight = weight + self.velocity
+        # self.velocity = self.momentum * self.velocity - self.learning_rate * gradient
+        # updated_weight = weight + self.velocity
+        updated_weight = weight - self.learning_rate * gradient
         return updated_weight

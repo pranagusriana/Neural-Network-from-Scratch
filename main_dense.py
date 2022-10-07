@@ -2,8 +2,8 @@ import numpy as np
 from PIL import Image
 from CNN.layers import Dense
 from CNN.lemah import Sequential
-from CNN.loses import mse
-from CNN.optimizer import SGD
+from CNN.losses import mse
+from CNN.optimizers import SGD
 
 X = [[
     [0, 0],
