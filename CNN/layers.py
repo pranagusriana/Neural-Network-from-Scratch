@@ -1,9 +1,21 @@
 import numpy as np
+from CNN.activations import relu, sigmoid
 from PIL import Image
 import PIL
 import math
 
-class Conv2D:
+class Layer:
+    def __init__(self):
+        self.input = None
+        self.output = None
+
+    def forward(self):
+        pass
+
+    def backward(self, optimizer, output_gradient):
+        pass
+
+class Conv2D(Layer):
     """
     args:
         filters: Integer, the dimensionality of the output space (i.e. the number of output filters in the convolution)
@@ -25,6 +37,7 @@ class Conv2D:
                 pooling_strides: tuple[int, int]|int = 2,
                 pooling_mode: str = 'average'):
 
+        super().__init__()
         filters, kernel_size, strides, padding = self._check_params(filters, kernel_size, strides, padding)
         self.filters = filters
         self.kernel_size = kernel_size
@@ -193,9 +206,10 @@ class Conv2D:
     def getNumberofWeights(self):
         return self.nWeights
 
-class Flatten:
+class Flatten(Layer):
     def __init__(self,
                 input_shape: int = None):
+        super().__init__()
         if (input_shape):
             self.add_input_shape(input_shape)
 
@@ -232,11 +246,12 @@ class Flatten:
         batch, height, width, depth = input_data.shape
         return np.array([input_data[i].flatten() for i in range(batch)])
 
-class Dense:
+class Dense(Layer):
     def __init__(self,
                 units: int,
                 activation: str = None,
                 input_shape: tuple[int] = None):
+        super().__init__()
         self.units, self.activation = self._check_params(units, activation)
         if (input_shape):
             self.add_input_shape(input_shape)
@@ -264,7 +279,7 @@ class Dense:
 
     def _init_weights(self):
         self.weights = np.random.randn(self.units, self.nInputs)
-        self.biases = np.zeros(self.units)
+        self.biases = np.zeros((self.units, 1))
 
     def _calculate_output_shape(self):
         self.output_shape =  (self.units, )
@@ -291,21 +306,23 @@ class Dense:
 
     def __call__(self, batch_data):
         input_data = self._check_input_data(batch_data)
+        self.input = input_data
         batch, n_inputs = input_data.shape
-        return np.array([self.f(np.dot(input_data[i], self.weights.T) + self.biases) for i in range(batch)])
+        self.output = np.array([self.f((np.dot(input_data[i], self.weights.T) + self.biases.T).T).reshape(-1) for i in range(batch)])
+        return self.output
+
+    def backward(self, optimizer, output_gradient):
+        weights_gradient = output_gradient @ self.input
+        input_gradient = self.weights @ output_gradient.T
+        self.weights = optimizer.update(self.weights, weights_gradient)
+        self.biases = optimizer.update(self.biases, output_gradient.reshape(-1))
+        return input_gradient
 
     def f(self, net):
         if (self.activation == 'relu'):
-            return self.relu(net)
+            return relu(net)
         elif (self.activation == 'sigmoid'):
-            return self.sigmoid(net)
+            return sigmoid(net)
         else:
             # linear activation function
             return net
-
-    def relu(self, net):
-        net[net < 0] = 0
-        return net
-
-    def sigmoid(self, net):
-        return 1 / (1 + np.exp(-net))
