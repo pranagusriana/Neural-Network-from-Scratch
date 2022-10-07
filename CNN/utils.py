@@ -30,16 +30,15 @@ def data_gen(path, img_size, batch_size, random_state=None):
     X_batch = []
     Y_batch = []
     for i in range(len(X_filenames)):
-        if ib < batch_size:
-            X_batch.append(load_image(X_filenames[i], img_size))
-            Y_batch.append([y[i]])
-            ib += 1
-        else:
+        if ib == batch_size:
             X.append(X_batch)
             Y.append(Y_batch)
             X_batch = []
             Y_batch = []
             ib = 0
+        X_batch.append(load_image(X_filenames[i], img_size))
+        Y_batch.append([y[i]])
+        ib += 1
         
         # if (i == len(X_filenames) - 1):
         #     X.append(X_batch)
