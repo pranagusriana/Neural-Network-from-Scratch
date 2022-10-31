@@ -1,14 +1,14 @@
 import numpy as np
 from PIL import Image
-from CNN.layers import Conv2D, Flatten, Dense
-from CNN.lemah import Sequential
-from CNN.losses import mse
-from CNN.optimizers import SGD
-from CNN.utils import data_gen
+from NeuralNetwork.layers import Conv2D, Flatten, Dense
+from NeuralNetwork.lemah import Sequential
+from NeuralNetwork.losses import mse
+from NeuralNetwork.optimizers import SGD
+from NeuralNetwork.utils import data_gen
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 img_size = 50
-X_test, y_test, map_test = data_gen("./Data/test", img_size, 2, 42)
+X_test, y_test, map_test = data_gen("./Data/CNN/test", img_size, 2, 42)
 print(X_test.shape, y_test.shape, map_test)
 
 model = Sequential()

@@ -1,9 +1,9 @@
 import numpy as np
 from PIL import Image
-from CNN.layers import Dense
-from CNN.lemah import Sequential
-from CNN.losses import mse
-from CNN.optimizers import SGD
+from NeuralNetwork.layers import Dense
+from NeuralNetwork.lemah import Sequential
+from NeuralNetwork.losses import mse
+from NeuralNetwork.optimizers import SGD
 
 X = [[
     [0, 0],

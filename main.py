@@ -1,15 +1,15 @@
 import numpy as np
 from PIL import Image
-from CNN.layers import Conv2D, Flatten, Dense
-from CNN.lemah import Sequential
-from CNN.losses import mse
-from CNN.optimizers import SGD
-from CNN.utils import data_gen
+from NeuralNetwork.layers import Conv2D, Flatten, Dense
+from NeuralNetwork.lemah import Sequential
+from NeuralNetwork.losses import mse
+from NeuralNetwork.optimizers import SGD
+from NeuralNetwork.utils import data_gen
 
 img_size = 50
-cat_img = np.array(Image.open("./Data/test/cats/cat.38.jpg").resize((img_size, img_size)), dtype=int)
-dog_img = np.array(Image.open("./Data/test/dogs/dog.4.jpg").resize((img_size, img_size)), dtype=int)
-X_train, y_train, map_train = data_gen("./Data/train", img_size, 2, 42)
+cat_img = np.array(Image.open("./Data/CNN/test/cats/cat.38.jpg").resize((img_size, img_size)), dtype=int)
+dog_img = np.array(Image.open("./Data/CNN/test/dogs/dog.4.jpg").resize((img_size, img_size)), dtype=int)
+X_train, y_train, map_train = data_gen("./Data/CNN/train", img_size, 2, 42)
 print(X_train.shape, y_train.shape)
 
 model = Sequential(
