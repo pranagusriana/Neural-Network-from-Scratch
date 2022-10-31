@@ -1,5 +1,5 @@
 import numpy as np
-from CNN.activations import relu, sigmoid
+from CNN.activations import relu, sigmoid, tanh
 from PIL import Image
 import PIL
 import math
@@ -278,6 +278,8 @@ class Dense(Layer):
         self.nWeights = self.units * self.nInputs + self.units # n_neuron * n_input + n_bias
 
     def _init_weights(self):
+        limit = np.sqrt(6 / float(self.nInputs + self.units))
+        # self.weights = np.random.uniform(low=-limit, high=limit, size=(self.units, self.nInputs))
         self.weights = np.random.randn(self.units, self.nInputs)
         self.biases = np.zeros((self.units, 1))
 
@@ -326,3 +328,100 @@ class Dense(Layer):
         else:
             # linear activation function
             return net
+
+# CATATAN: yang masih belum terimplementasi hampir mirip sama layer yang lain
+class LSTM(Layer):
+    def __init__(self,
+                units: int,
+                input_shape: tuple[int, int] = None):
+        super().__init__()
+        self.units = self._check_params(units)
+        self.Ct_min_1 = 0
+        self.Ht_min_1 = 0
+        if (input_shape):
+            self.add_input_shape(input_shape)
+
+    def _check_params(self, units):
+        # TODO: check params units
+        # units: int >= 1
+        pass
+        
+    def _check_input_shape(self, input_shape):
+        # TODO: check input shape
+        # input_shape -> shapenya 2 (n_sequences, n_input)
+        # Hitung nWeights
+        # Simpen nilai n_sequences, n_input
+        pass
+
+    def _init_weights(self):
+        limit = np.sqrt(6 / float(self.nInputs + self.units))
+
+        # Definisi matrix U
+        # Size (n_units, n_input)
+        self.Ui = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
+        self.Uc = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
+        # TODO: define Uf, Uo
+
+        # Definisi matrix W
+        # Size (units, units)
+        self.Wi = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
+        self.Wc = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
+        # TODO: define Wf, Wo
+
+        # Definisi biases
+        # Size (units, 1)
+        self.bi = np.zeros((self.units, 1))
+        self.bc = np.zeros((self.units, 1))
+        # TODO: define bf, bo
+
+    def _calculate_output_shape(self):
+        # TODO: hitung output shape terus simpen di atribut self.output_shape
+        pass
+
+    def add_input_shape(self, input_shape):
+        self._check_input_shape(input_shape)
+        self._init_weights()
+        self._calculate_output_shape()
+
+    def _check_input_data(self, input_data):
+        # TODO: check input data untuk metode fit
+        # input_data -> 3 dimensi (n_batch, n_sequences, n_input)
+        pass
+
+    def getOutputShape(self):
+        return self.output_shape
+
+    def getNumberofWeights(self):
+        return self.nWeights
+
+    def resetState(self):
+        self.Ct_min_1 = 0
+        self.Ht_min_1 = 0
+
+    def calculateInputGate(self, Xt):
+        it = sigmoid(np.dot(Xt, self.Ui.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wi.T)) + self.bi)
+        candidate_t = tanh(np.dot(Xt, self.Uc.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wc.T)) + self.bc)
+        return it, candidate_t
+    
+    def calculateCellState(self, ft, it, candidate_t):
+        return ft * (0 if type(self.Ct_min_1) == int else self.Ct_min_1) + it * candidate_t
+
+    def __call__(self, batch_data):
+        input_data = self._check_input_data(batch_data)
+        batches, n_sequences, n_inputs = input_data.shape
+        ret = []
+        for batch in range(batches):
+            self.resetState()
+            curData = input_data[batch]
+            for t in range(n_sequences):
+                Xt = curData[t]
+                # TODO: calculateForgetGate
+                ft = 0
+                it, candidate_t = self.calculateInputGate(Xt)
+                ct = self.calculateCellState(ft, it, candidate_t)
+                self.Ct_min_1 = ct
+                # TODO: calculateOutputGate
+                ot, ht = 0, 0
+                self.Ht_min_1 = ht
+            ret.append(ht)
+        return np.array(ret)

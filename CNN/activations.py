@@ -11,3 +11,8 @@ def sigmoid(net, prime=False):
     if prime:
         return out * (1 - out)
     return out
+
+def tanh(net, prime=False):
+    if prime:
+        return 1 - np.tanh(net) ** 2
+    return np.tanh(net)
