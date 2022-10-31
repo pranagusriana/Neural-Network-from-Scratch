@@ -7,20 +7,22 @@ from CNN.optimizers import SGD
 
 X = [[
     [0, 0],
-    [0, 1],
-    [1, 0],
+    [0, 1]],
+    [[1, 0],
     [1, 1]
 ]]
 
-y = [[[0], [1], [1], [0]]]
+y = [[[0], [1]], [[1], [0]]]
 
 model = Sequential(
     [
         Dense(128, activation='relu', input_shape=(2, )),
+        Dense(512, activation='relu'),
+        Dense(32, activation='relu'),
         Dense(1, activation='sigmoid')
     ]
 )
-optim = SGD(learning_rate=2, momentum=0.1)
+optim = SGD(learning_rate=0.001, momentum=0.1)
 loss = mse
 model.compile(optim, loss)
 X = np.array(X)

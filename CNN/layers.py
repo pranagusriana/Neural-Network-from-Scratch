@@ -278,8 +278,8 @@ class Dense(Layer):
         self.nWeights = self.units * self.nInputs + self.units # n_neuron * n_input + n_bias
 
     def _init_weights(self):
-        self.weights = np.random.randn(self.nInputs, self.units)
-        self.biases = np.zeros((1, self.units))
+        self.weights = np.random.randn(self.units, self.nInputs)
+        self.biases = np.zeros((self.units, 1))
 
     def _calculate_output_shape(self):
         self.output_shape =  (self.units, )
@@ -308,14 +308,14 @@ class Dense(Layer):
         input_data = self._check_input_data(batch_data)
         self.input = input_data
         batch, n_inputs = input_data.shape
-        self.output = self.f(np.dot(input_data, self.weights) + self.biases)
+        self.output = self.f(np.dot(input_data, self.weights.T) + self.biases.T)
         return self.output
 
     def backward(self, optimizer, output_gradient):
         weights_gradient = np.dot(self.input.T, output_gradient)
-        input_gradient = np.dot(output_gradient, self.weights.T)
-        self.weights = optimizer.update(self.weights, weights_gradient)
-        self.biases = optimizer.update(self.biases, output_gradient)
+        input_gradient = np.dot(output_gradient, self.weights)
+        self.weights = optimizer.update(self.weights, weights_gradient.T)
+        self.biases = optimizer.update(self.biases, np.mean(output_gradient, axis=0, keepdims=True).T)
         return input_gradient
 
     def f(self, net):
