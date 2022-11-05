@@ -402,7 +402,7 @@ class LSTM(Layer):
         self.Ht_min_1 = 0
 
     def calculateForgetGate(self, Xt):
-        ft = tanh(np.dot(Xt, self.Uf.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wf.T)) + self.bf.T)
+        ft = sigmoid(np.dot(Xt, self.Uf.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wf.T)) + self.bf.T)
         return ft
 
     def calculateInputGate(self, Xt):
@@ -411,7 +411,7 @@ class LSTM(Layer):
         return it, candidate_t
 
     def calculateOutputGate(self, Xt):
-        ot = tanh(np.dot(Xt, self.Uo.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wo.T)) + self.bo.T)
+        ot = sigmoid(np.dot(Xt, self.Uo.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wo.T)) + self.bo.T)
         return ot
     
     def calculateCellState(self, ft, it, candidate_t):
@@ -432,7 +432,7 @@ class LSTM(Layer):
                 self.Ct_min_1 = ct
                 # output
                 ot = self.calculateOutputGate(Xt)
-                ht = sigmoid(ct) * ot
+                ht = tanh(ct) * ot
                 self.Ht_min_1 = ht
             ret.append(ht[0])
         return np.array(ret)
