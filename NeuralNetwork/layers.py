@@ -379,7 +379,7 @@ class LSTM(Layer):
 
     def _calculate_output_shape(self):
         # TODO: hitung output shape terus simpen di atribut self.output_shape
-        pass
+        self.output_shape = (self.units,)
 
     def add_input_shape(self, input_shape):
         self._check_input_shape(input_shape)
@@ -436,3 +436,7 @@ class LSTM(Layer):
                 self.Ht_min_1 = ht
             ret.append(ht)
         return np.array(ret)
+
+    def calculate_param(self):
+        lstm_param  = (self.n_input + self.output_shape + 1) * 4 * self.output_shape + (self.output_shape + 1) * self.units
+        return lstm_param

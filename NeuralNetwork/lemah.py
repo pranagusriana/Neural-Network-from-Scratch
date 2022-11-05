@@ -58,3 +58,15 @@ class Sequential:
     def load(self, filename):
         pickle_in = open(filename, "rb")
         self.layers = pickle.load(pickle_in)
+
+    def summary(self):
+        headers = ["Layer (type)", "Output Shape", "Param #"]
+        myData = []
+        trainable_param  = 0
+        for layer in self.layers:
+            myData.append((layer.__class__.__name__,layer.output_shape(),layer.calculate_param()))
+            trainable_param += layer.calculate_param()
+        print(tabulate(myData, headers=headers))
+        print ("Total params : ",trainable_param)
+        print ("Trainable params : ",trainable_param)
+        print ("Trainable params : ",0)
