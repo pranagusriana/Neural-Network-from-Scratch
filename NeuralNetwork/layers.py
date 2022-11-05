@@ -1,8 +1,5 @@
 import numpy as np
-from CNN.activations import relu, sigmoid, tanh
-from PIL import Image
-import PIL
-import math
+from NeuralNetwork.activations import relu, sigmoid, tanh
 
 class Layer:
     def __init__(self):
@@ -329,7 +326,6 @@ class Dense(Layer):
             # linear activation function
             return net
 
-# CATATAN: yang masih belum terimplementasi hampir mirip sama layer yang lain
 class LSTM(Layer):
     def __init__(self,
                 units: int,
@@ -342,19 +338,20 @@ class LSTM(Layer):
             self.add_input_shape(input_shape)
 
     def _check_params(self, units):
-        # TODO: check params units
-        # units: int >= 1
-        pass
+        if (not(isinstance(units, int))):
+            raise TypeError("Units should be integers >= 1")
+        if (units < 1):
+            raise ValueError("Units should be integers >= 1")
+        return units
         
     def _check_input_shape(self, input_shape):
-        # TODO: check input shape
-        # input_shape -> shapenya 2 (n_sequences, n_input)
-        # Hitung nWeights
-        # Simpen nilai n_sequences, n_input
-        pass
+        assert isinstance(input_shape, tuple), 'Input shape should be tuple of integers with 2 dimensions (n_sequences, n_input)'
+        assert len(input_shape) == 2, 'Input shape should have 2 dimensions (n_sequences, n_input)'
+        self.n_sequences, self.n_input, = input_shape
+        self.nWeights = (self.n_input + self.units + 1) * 4 * self.units
 
     def _init_weights(self):
-        limit = np.sqrt(6 / float(self.nInputs + self.units))
+        limit = np.sqrt(6 / float(self.n_input + self.units))
 
         # Definisi matrix U
         # Size (n_units, n_input)
@@ -378,7 +375,6 @@ class LSTM(Layer):
         self.bo = np.zeros((self.units, 1))
 
     def _calculate_output_shape(self):
-        # TODO: hitung output shape terus simpen di atribut self.output_shape
         self.output_shape = (self.units,)
 
     def add_input_shape(self, input_shape):
@@ -387,9 +383,13 @@ class LSTM(Layer):
         self._calculate_output_shape()
 
     def _check_input_data(self, input_data):
-        # TODO: check input data untuk metode fit
-        # input_data -> 3 dimensi (n_batch, n_sequences, n_input)
-        pass
+        if (not(isinstance(input_data, np.ndarray))):
+            input_data = np.array(input_data)
+        assert len(input_data.shape) == 3, 'Input shape should have 3 dimensions (n_batch, n_sequences, n_input)'
+        n_batch, n_sequences, n_input = input_data.shape
+        if (n_input != self.n_input or n_sequences != self.n_sequences):
+            raise ValueError(f"Expected input shape is (None, {self.n_sequences}, {self.n_input}) not {input_data.shape}")
+        return input_data
 
     def getOutputShape(self):
         return self.output_shape
@@ -402,16 +402,16 @@ class LSTM(Layer):
         self.Ht_min_1 = 0
 
     def calculateForgetGate(self, Xt):
-        ft = tanh(np.dot(Xt, self.Uf.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wf.T)) + self.bf)
+        ft = tanh(np.dot(Xt, self.Uf.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wf.T)) + self.bf.T)
         return ft
 
     def calculateInputGate(self, Xt):
-        it = sigmoid(np.dot(Xt, self.Ui.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wi.T)) + self.bi)
-        candidate_t = tanh(np.dot(Xt, self.Uc.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wc.T)) + self.bc)
+        it = sigmoid(np.dot(Xt, self.Ui.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wi.T)) + self.bi.T)
+        candidate_t = tanh(np.dot(Xt, self.Uc.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wc.T)) + self.bc.T)
         return it, candidate_t
 
     def calculateOutputGate(self, Xt):
-        ot = tanh(np.dot(Xt, self.Uo.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wo.T)) + self.bo)
+        ot = tanh(np.dot(Xt, self.Uo.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wo.T)) + self.bo.T)
         return ot
     
     def calculateCellState(self, ft, it, candidate_t):
@@ -434,9 +434,5 @@ class LSTM(Layer):
                 ot = self.calculateOutputGate(Xt)
                 ht = sigmoid(ct) * ot
                 self.Ht_min_1 = ht
-            ret.append(ht)
+            ret.append(ht[0])
         return np.array(ret)
-
-    def calculate_param(self):
-        lstm_param  = (self.n_input + self.output_shape + 1) * 4 * self.output_shape + (self.output_shape + 1) * self.units
-        return lstm_param

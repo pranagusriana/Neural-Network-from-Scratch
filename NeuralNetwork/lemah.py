@@ -65,9 +65,9 @@ class Sequential:
         myData = []
         trainable_param  = 0
         for layer in self.layers:
-            myData.append((layer.__class__.__name__,layer.output_shape(),layer.calculate_param()))
-            trainable_param += layer.calculate_param()
+            myData.append((layer.__class__.__name__,layer.getOutputShape(),layer.getNumberofWeights()))
+            trainable_param += layer.getNumberofWeights()
         print(tabulate(myData, headers=headers))
         print ("Total params : ",trainable_param)
         print ("Trainable params : ",trainable_param)
-        print ("Trainable params : ",0)
+        print ("Non-trainable params : ",0)
