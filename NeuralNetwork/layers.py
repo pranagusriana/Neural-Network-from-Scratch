@@ -358,21 +358,24 @@ class LSTM(Layer):
 
         # Definisi matrix U
         # Size (n_units, n_input)
+        self.Uf = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
         self.Ui = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
         self.Uc = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
-        # TODO: define Uf, Uo
+        self.Uo = np.random.uniform(low=-limit, high=limit, size=(self.units, self.n_input))
 
         # Definisi matrix W
         # Size (units, units)
+        self.Wf = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
         self.Wi = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
         self.Wc = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
-        # TODO: define Wf, Wo
+        self.Wo = np.random.uniform(low=-limit, high=limit, size=(self.units, self.units))
 
         # Definisi biases
         # Size (units, 1)
+        self.bf = np.zeros((self.units, 1))
         self.bi = np.zeros((self.units, 1))
         self.bc = np.zeros((self.units, 1))
-        # TODO: define bf, bo
+        self.bo = np.zeros((self.units, 1))
 
     def _calculate_output_shape(self):
         # TODO: hitung output shape terus simpen di atribut self.output_shape
@@ -398,10 +401,18 @@ class LSTM(Layer):
         self.Ct_min_1 = 0
         self.Ht_min_1 = 0
 
+    def calculateForgetGate(self, Xt):
+        ft = tanh(np.dot(Xt, self.Uf.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wf.T)) + self.bf)
+        return ft
+
     def calculateInputGate(self, Xt):
         it = sigmoid(np.dot(Xt, self.Ui.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wi.T)) + self.bi)
         candidate_t = tanh(np.dot(Xt, self.Uc.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wc.T)) + self.bc)
         return it, candidate_t
+
+    def calculateOutputGate(self, Xt):
+        ot = tanh(np.dot(Xt, self.Uo.T) + (0 if type(self.Ht_min_1) == int else np.dot(self.Ht_min_1, self.Wo.T)) + self.bo)
+        return ot
     
     def calculateCellState(self, ft, it, candidate_t):
         return ft * (0 if type(self.Ct_min_1) == int else self.Ct_min_1) + it * candidate_t
@@ -415,13 +426,13 @@ class LSTM(Layer):
             curData = input_data[batch]
             for t in range(n_sequences):
                 Xt = curData[t]
-                # TODO: calculateForgetGate
-                ft = 0
+                ft = self.calculateForgetGate(Xt)
                 it, candidate_t = self.calculateInputGate(Xt)
                 ct = self.calculateCellState(ft, it, candidate_t)
                 self.Ct_min_1 = ct
-                # TODO: calculateOutputGate
-                ot, ht = 0, 0
+                # output
+                ot = self.calculateOutputGate(Xt)
+                ht = sigmoid(ct) * ot
                 self.Ht_min_1 = ht
             ret.append(ht)
         return np.array(ret)
